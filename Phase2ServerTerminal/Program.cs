@@ -3,8 +3,7 @@ using System.Net;
 
 class Server
 {
-    private static IPEndPoint senderEndpoint;
-    private static TcpClient senderClient;
+    private static IPEndPoint receiverEndpoint;
     static async Task Main(string[] args)
     {
         TcpListener server = new TcpListener(IPAddress.Any, 5713);
@@ -24,16 +23,19 @@ class Server
         StreamReader reader = new StreamReader(stream);
         StreamWriter writer = new StreamWriter(stream);
         string message = await reader.ReadLineAsync();
-        if(message == "SENDER")
+
+        if (message == "RECEIVER")
         {
-            senderEndpoint = (IPEndPoint)client.Client.RemoteEndPoint;
-            senderClient = client;
-            Console.WriteLine("Sender Connected");
-        }else if(message == "RECEIVER")
-        {
-            writer.WriteLine($"{senderEndpoint.Address}:{senderEndpoint.Port}");
+            receiverEndpoint = (IPEndPoint)client.Client.RemoteEndPoint;
+            writer.WriteLine("RECEIVER_REGISTERED");
             writer.Flush();
-            Console.WriteLine("Receiver Connected");
+            Console.WriteLine($"Receiver Connected: {receiverEndpoint.Address}:{receiverEndpoint.Port}");
+        }
+        else if (message == "SENDER" && receiverEndpoint != null)
+        {
+            writer.WriteLine($"{receiverEndpoint.Address}:{receiverEndpoint.Port}");
+            writer.Flush();
+            Console.WriteLine("Sender Connected and Receiver info sent.");
         }
         reader.Close();
         writer.Close();

@@ -29,10 +29,14 @@ class Server
             Console.WriteLine("Sender Connected");
         }else if(message == "RECEIVER")
         {
-            writer.WriteLine($"{senderEndpoint.Address}:{senderEndpoint.Port}");
+            writer.WriteLine($"{senderEndpoint.Address}:5714");
             writer.Flush();
             Console.WriteLine("Receiver Connected");
         }
+        reader.Close();
+        writer.Close();
+        stream.Close();
         client.Close();
+
     }
 }

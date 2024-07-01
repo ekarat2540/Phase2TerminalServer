@@ -3,7 +3,7 @@ using System.Net;
 
 class Server
 {
-    private static IPEndPoint receiverEndpoint;
+    private static TcpClient receiverClient;
     static async Task Main(string[] args)
     {
         TcpListener server = new TcpListener(IPAddress.Any, 5713);
@@ -26,21 +26,32 @@ class Server
 
         if (message == "RECEIVER")
         {
-            receiverEndpoint = (IPEndPoint)client.Client.RemoteEndPoint;
-            writer.WriteLine("RECEIVER_REGISTERED");
-            writer.Flush();
-            Console.WriteLine($"Receiver Connected: {receiverEndpoint.Address}:{receiverEndpoint.Port}");
+            receiverClient = client;
+            Console.WriteLine("Receiver Connected");
         }
-        else if (message == "SENDER" && receiverEndpoint != null)
+        else if (message == "SENDER")
         {
-            writer.WriteLine($"{receiverEndpoint.Address}:{receiverEndpoint.Port}");
-            writer.Flush();
-            Console.WriteLine("Sender Connected and Receiver info sent.");
+            Console.WriteLine("Sender Connected");
+            await ForwardMessages(client);
         }
-        reader.Close();
-        writer.Close();
-        stream.Close();
-        client.Close();
+        static async Task ForwardMessages(TcpClient senderClient)
+        {
+            NetworkStream senderStream = senderClient.GetStream();
+            StreamReader senderReader = new StreamReader(senderStream);
+
+            while (true)
+            {
+                string message = await senderReader.ReadLineAsync();
+
+                if (receiverClient != null)
+                {
+                    NetworkStream receiverStream = receiverClient.GetStream();
+                    StreamWriter receiverWriter = new StreamWriter(receiverStream);
+                    receiverWriter.WriteLine(message);
+                    receiverWriter.Flush();
+                }
+            }
+        }
 
     }
 }

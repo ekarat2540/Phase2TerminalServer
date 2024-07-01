@@ -20,11 +20,17 @@ class Server
         IPEndPoint senderEndpoint;
         NetworkStream stream = client.GetStream();
         StreamReader reader = new StreamReader(stream);
+        StreamWriter writer = new StreamWriter(stream);
         string message = await reader.ReadLineAsync();
         if(message == "SENDER")
         {
             senderEndpoint = (IPEndPoint)client.Client.RemoteEndPoint;
             Console.WriteLine("Sender Connected");
+        }else if(message == "RECEIVER")
+        {
+            writer.WriteLine($"{senderEndpoint.Address}:{senderEndpoint.Port}");
+            writer.Flush();
+            Console.WriteLine("Receiver Connected");
         }
         client.Close();
     }

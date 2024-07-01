@@ -4,6 +4,7 @@ using System.Net;
 class Server
 {
     private static IPEndPoint senderEndpoint;
+    private static TcpClient senderClient;
     static async Task Main(string[] args)
     {
         TcpListener server = new TcpListener(IPAddress.Any, 5713);
@@ -26,8 +27,7 @@ class Server
         if(message == "SENDER")
         {
             senderEndpoint = (IPEndPoint)client.Client.RemoteEndPoint;
-            writer.WriteLine($"{senderEndpoint.Address}:{senderEndpoint.Port}");
-            writer.Flush();
+            senderClient = client;
             Console.WriteLine("Sender Connected");
         }else if(message == "RECEIVER")
         {

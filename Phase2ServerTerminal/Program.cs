@@ -26,10 +26,12 @@ class Server
         if(message == "SENDER")
         {
             senderEndpoint = (IPEndPoint)client.Client.RemoteEndPoint;
+            writer.WriteLine($"{senderEndpoint.Address}:{senderEndpoint.Port}");
+            writer.Flush();
             Console.WriteLine("Sender Connected");
         }else if(message == "RECEIVER")
         {
-            writer.WriteLine($"{senderEndpoint.Address}:5714");
+            writer.WriteLine($"{senderEndpoint.Address}:{senderEndpoint.Port}");
             writer.Flush();
             Console.WriteLine("Receiver Connected");
         }

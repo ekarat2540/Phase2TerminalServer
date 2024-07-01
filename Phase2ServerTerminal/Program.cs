@@ -3,6 +3,7 @@ using System.Net;
 
 class Server
 {
+    private static IPEndPoint senderEndpoint;
     static async Task Main(string[] args)
     {
         TcpListener server = new TcpListener(IPAddress.Any, 5713);
@@ -17,7 +18,7 @@ class Server
     
     static async Task Connect(TcpClient client)
     {
-        IPEndPoint senderEndpoint;
+        
         NetworkStream stream = client.GetStream();
         StreamReader reader = new StreamReader(stream);
         StreamWriter writer = new StreamWriter(stream);

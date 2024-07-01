@@ -7,6 +7,6 @@ class Server
     {
         TcpListener server = new TcpListener(IPAddress.Any, 5713);
         server.Start();
-        Console.WriteLine("Server is started on port 5713");
+        Console.WriteLine("Server is started on port 5713.");
     }
 }

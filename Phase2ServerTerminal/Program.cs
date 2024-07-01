@@ -21,7 +21,7 @@ class Server
         NetworkStream stream = client.GetStream();
         StreamReader reader = new StreamReader(stream);
         string message = await reader.ReadLineAsync();
-        if(message != "SENDER")
+        if(message == "SENDER")
         {
             senderEndpoint = (IPEndPoint)client.Client.RemoteEndPoint;
             Console.WriteLine("Sender Connected");

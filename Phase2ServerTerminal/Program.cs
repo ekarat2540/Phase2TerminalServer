@@ -1,57 +1,46 @@
-﻿using System.Net.Sockets;
+﻿using System;
 using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading.Tasks;
 
 class Server
 {
-    private static TcpClient receiverClient;
+    private static IPEndPoint receiverEndPoint;
+
     static async Task Main(string[] args)
     {
-        TcpListener server = new TcpListener(IPAddress.Any, 5713);
-        server.Start();
+        UdpClient server = new UdpClient(5713);
         Console.WriteLine("Server is started on port 5713.");
+
         while (true)
         {
-            TcpClient client = await server.AcceptTcpClientAsync();
-            _ = Connect(client);
-        }
-    }
-    
-    static async Task Connect(TcpClient client)
-    {
-        
-        NetworkStream stream = client.GetStream();
-        StreamReader reader = new StreamReader(stream);
-        StreamWriter writer = new StreamWriter(stream);
-        string message = await reader.ReadLineAsync();
+            UdpReceiveResult result = await server.ReceiveAsync();
+            string message = Encoding.UTF8.GetString(result.Buffer);
 
-        if (message == "RECEIVER")
-        {
-            receiverClient = client;
-            Console.WriteLine("Receiver Connected");
-        }
-        else if (message == "SENDER")
-        {
-            Console.WriteLine("Sender Connected");
-            await ForwardMessages(client);
-        }
-        static async Task ForwardMessages(TcpClient senderClient)
-        {
-            NetworkStream senderStream = senderClient.GetStream();
-            StreamReader senderReader = new StreamReader(senderStream);
+            string clientType = message;
 
-            while (true)
+            if (clientType == "RECEIVER")
             {
-                string message = await senderReader.ReadLineAsync();
-
-                if (receiverClient != null)
+                receiverEndPoint = result.RemoteEndPoint;
+                Console.WriteLine($"Receiver Registered: {receiverEndPoint}");
+                byte[] response = Encoding.UTF8.GetBytes("RECEIVER_REGISTERED");
+                await server.SendAsync(response, response.Length, result.RemoteEndPoint);
+            }
+            else if (clientType == "SENDER")
+            {
+                if (receiverEndPoint != null)
                 {
-                    NetworkStream receiverStream = receiverClient.GetStream();
-                    StreamWriter receiverWriter = new StreamWriter(receiverStream);
-                    receiverWriter.WriteLine(message);
-                    receiverWriter.Flush();
+                    byte[] response = Encoding.UTF8.GetBytes($"{receiverEndPoint.Address}:{receiverEndPoint.Port}");
+                    await server.SendAsync(response, response.Length, result.RemoteEndPoint);
+                    Console.WriteLine($"Sent Receiver Info to Sender");
+                }
+                else
+                {
+                    byte[] response = Encoding.UTF8.GetBytes("NO_RECEIVER");
+                    await server.SendAsync(response, response.Length, result.RemoteEndPoint);
                 }
             }
         }
-
     }
 }
